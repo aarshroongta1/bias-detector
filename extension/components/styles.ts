@@ -147,6 +147,22 @@ const STYLES = `
   background: #2563eb;
   transform: scale(1.1);
 }
+
+.textarea-overlay {
+  pointer-events: none;
+  z-index: 999999;
+}
+
+.textarea-backdrop {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.textarea-backdrop mark.bias-highlight {
+  color: transparent;
+  border-radius: 2px;
+}
 `
 
 let injected = false

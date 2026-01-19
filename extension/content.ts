@@ -10,6 +10,7 @@ import {
 } from "./components/button"
 import { highlightIssues } from "./components/highlight"
 import { injectStyles } from "./components/styles"
+import { highlightTextarea } from "./components/textarea-overlay"
 
 export const config: PlasmoCSConfig = {
   matches: ["<all_urls>"]
@@ -93,6 +94,8 @@ async function handleAnalyze(): Promise<void> {
 
     if (issues.length === 0) {
       setButtonSuccess()
+    } else if (element.tagName.toLowerCase() === "textarea") {
+      highlightTextarea(element as HTMLTextAreaElement, issues)
     } else {
       highlightIssues(element, issues)
     }
