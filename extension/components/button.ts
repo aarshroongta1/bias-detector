@@ -4,7 +4,7 @@ export function showButton(element: HTMLElement, onAnalyze: () => void): void {
   if (!floatingBtn) {
     floatingBtn = document.createElement("button");
     floatingBtn.className = "check-btn";
-    floatingBtn.innerHTML = "Check";
+    floatingBtn.innerHTML = "B";
     floatingBtn.addEventListener("mousedown", (e) => e.preventDefault());
     floatingBtn.addEventListener("click", onAnalyze);
     document.body.appendChild(floatingBtn);
@@ -24,20 +24,22 @@ export function updateButtonPosition(element: HTMLElement | null): void {
 
   const rect = element.getBoundingClientRect();
   floatingBtn.style.position = "fixed";
-  floatingBtn.style.top = `${rect.top + 5}px`;
-  floatingBtn.style.left = `${rect.right - 90}px`;
+  floatingBtn.style.bottom = `${window.innerHeight - rect.bottom + 8}px`;
+  floatingBtn.style.right = `${window.innerWidth - rect.right + 8}px`;
+  floatingBtn.style.top = "auto";
+  floatingBtn.style.left = "auto";
   floatingBtn.style.zIndex = "1000000000";
 }
 
 export function setButtonLoading(loading: boolean): void {
   if (!floatingBtn) return;
-  floatingBtn.innerHTML = loading ? "Analyzing" : "Check";
+  floatingBtn.innerHTML = loading ? "..." : "B";
 }
 
 export function setButtonSuccess(): void {
   if (!floatingBtn) return;
-  floatingBtn.innerHTML = "Done";
+  floatingBtn.innerHTML = "✓";
   setTimeout(() => {
-    if (floatingBtn) floatingBtn.innerHTML = "Check";
+    if (floatingBtn) floatingBtn.innerHTML = "B";
   }, 1500);
 }

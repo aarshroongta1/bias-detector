@@ -128,19 +128,24 @@ const STYLES = `
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
 .check-btn:hover {
   background: #2563eb;
+  transform: scale(1.1);
 }
 `
 
