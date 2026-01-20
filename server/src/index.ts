@@ -34,7 +34,8 @@ For each biased phrase, return:
 - severity: how bad the bias is classified as "low", "medium", or "high"
 
 NOTE:
-- There can be multiple types of biases in one phrase. Still, give only one replacement suggestion that addresses all.
+- Report each biased word or short phrase separately, even if they appear near each other.
+- Give only one replacement suggestion per biased phrase that addresses the bias.
 - Carefully choose phrases: keep them short (3-4 words max) and split if long. Make sure only the biased part is included.
 - Don't go overkill. Stick to actual biases.
 - Be helpful, not preachy. Focus on genuine issues. 
@@ -57,7 +58,7 @@ app.get("/health", (req, res) => {
 });
 
 app.post("/analyze", async (req, res) => {
-  const text = req.body.text;
+  const text: string = req.body.text;
   const response = await client.responses.parse({
     model: "gpt-5-mini",
     input: [
@@ -71,7 +72,25 @@ app.post("/analyze", async (req, res) => {
       format: zodTextFormat(Response, "response"),
     },
   });
-  res.json({ results: response.output_parsed });
+
+  // Add position information for each bias
+  const biasesWithPositions = (response.output_parsed?.biases || []).map(
+    (bias) => {
+      const positions: { start: number; end: number }[] = [];
+      const escaped = bias.phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const phraseRegex = new RegExp(`\\b${escaped}\\b`, "gi");
+      let match;
+      while ((match = phraseRegex.exec(text)) !== null) {
+        positions.push({
+          start: match.index,
+          end: match.index + match[0].length,
+        });
+      }
+      return { ...bias, positions };
+    },
+  );
+
+  res.json({ results: { biases: biasesWithPositions } });
 });
 
 app.listen(port, () => {

@@ -1,10 +1,18 @@
 import type { BiasIssue } from "../type"
 import { hideCard, scheduleHideCard, showCard } from "./card"
 
+interface HighlightRange {
+  start: number
+  end: number
+  issue: BiasIssue
+  issueIndex: number
+}
+
 let overlay: HTMLDivElement | null = null
 let backdrop: HTMLDivElement | null = null
 let currentTextarea: HTMLTextAreaElement | null = null
 let currentIssues: BiasIssue[] = []
+let filteredRanges: HighlightRange[] = []
 
 export function highlightTextarea(
   textarea: HTMLTextAreaElement,
@@ -14,6 +22,28 @@ export function highlightTextarea(
 
   currentTextarea = textarea
   currentIssues = issues
+
+  // Collect all ranges from positions
+  const ranges: HighlightRange[] = []
+  issues.forEach((issue, issueIndex) => {
+    issue.positions.forEach((pos) => {
+      ranges.push({ start: pos.start, end: pos.end, issue, issueIndex })
+    })
+  })
+
+  // Sort by start position, longer ranges first for same start
+  ranges.sort((a, b) => a.start - b.start || b.end - a.end)
+
+  // Remove overlapping ranges (keep the first/longer one)
+  filteredRanges = []
+  for (const range of ranges) {
+    const overlaps = filteredRanges.some(
+      (r) => range.start < r.end && range.end > r.start
+    )
+    if (!overlaps) {
+      filteredRanges.push(range)
+    }
+  }
 
   // Create backdrop (shows highlights behind text)
   backdrop = document.createElement("div")
@@ -89,19 +119,23 @@ export function highlightTextarea(
 function renderHighlights(): void {
   if (!backdrop || !currentTextarea) return
 
-  let text = currentTextarea.value
-  let html = escapeHtml(text)
+  const text = currentTextarea.value
 
-  currentIssues.forEach((issue, index) => {
-    const escaped = escapeHtml(issue.phrase).replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    )
-    const regex = new RegExp(`(${escaped})`, "gi")
-    html = html.replace(regex, (match) => {
-      return `<mark class="bias-highlight severity-${issue.severity}" data-bias-index="${index}">${match}</mark>`
-    })
-  })
+  // Build HTML with highlights using positions
+  let html = ""
+  let lastEnd = 0
+
+  for (const range of filteredRanges) {
+    // Add text before this highlight
+    html += escapeHtml(text.slice(lastEnd, range.start))
+    // Add highlighted text
+    const highlightedText = text.slice(range.start, range.end)
+    html += `<mark class="bias-highlight severity-${range.issue.severity}" data-bias-index="${range.issueIndex}">${escapeHtml(highlightedText)}</mark>`
+    lastEnd = range.end
+  }
+
+  // Add remaining text
+  html += escapeHtml(text.slice(lastEnd))
 
   // Add extra space at the end to match textarea behavior
   html += "<br>"
@@ -117,8 +151,13 @@ function renderHighlights(): void {
 function setupHighlightInteraction(): void {
   if (!overlay || !currentTextarea) return
 
+  // Remove old interaction layer if exists
+  const oldLayer = overlay.querySelector(".interaction-layer")
+  if (oldLayer) oldLayer.remove()
+
   // Create invisible interaction layer
   const interactionLayer = document.createElement("div")
+  interactionLayer.className = "interaction-layer"
   interactionLayer.style.position = "absolute"
   interactionLayer.style.top = "0"
   interactionLayer.style.left = "0"
@@ -149,7 +188,7 @@ function setupHighlightInteraction(): void {
         showCard(
           mark,
           issue,
-          () => replaceInTextarea(issue.phrase, issue.replacement),
+          () => replaceInTextarea(index),
           () => removeHighlight(index)
         )
       }
@@ -162,17 +201,31 @@ function setupHighlightInteraction(): void {
   overlay.appendChild(interactionLayer)
 }
 
-function replaceInTextarea(phrase: string, replacement: string): void {
+function replaceInTextarea(issueIndex: number): void {
   if (!currentTextarea) return
 
+  const issue = currentIssues[issueIndex]
+  if (!issue) return
+
+  // Find the range for this issue
+  const range = filteredRanges.find((r) => r.issueIndex === issueIndex)
+  if (!range) return
+
   const text = currentTextarea.value
-  const regex = new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")
-  currentTextarea.value = text.replace(regex, replacement)
+  currentTextarea.value =
+    text.slice(0, range.start) + issue.replacement + text.slice(range.end)
 
-  // Remove this issue and re-render
-  currentIssues = currentIssues.filter((i) => i.phrase.toLowerCase() !== phrase.toLowerCase())
+  // Remove this range and adjust positions of subsequent ranges
+  const lengthDiff = issue.replacement.length - (range.end - range.start)
+  filteredRanges = filteredRanges.filter((r) => r !== range)
+  filteredRanges.forEach((r) => {
+    if (r.start > range.start) {
+      r.start += lengthDiff
+      r.end += lengthDiff
+    }
+  })
 
-  if (currentIssues.length > 0) {
+  if (filteredRanges.length > 0) {
     renderHighlights()
   } else {
     clearTextareaOverlay()
@@ -182,10 +235,10 @@ function replaceInTextarea(phrase: string, replacement: string): void {
   currentTextarea.dispatchEvent(new Event("input", { bubbles: true }))
 }
 
-function removeHighlight(index: number): void {
-  currentIssues = currentIssues.filter((_, i) => i !== index)
+function removeHighlight(issueIndex: number): void {
+  filteredRanges = filteredRanges.filter((r) => r.issueIndex !== issueIndex)
 
-  if (currentIssues.length > 0) {
+  if (filteredRanges.length > 0) {
     renderHighlights()
   } else {
     clearTextareaOverlay()
@@ -237,5 +290,6 @@ export function clearTextareaOverlay(): void {
   window.removeEventListener("resize", updateOverlayPosition)
   window.removeEventListener("scroll", updateOverlayPosition, true)
   currentIssues = []
+  filteredRanges = []
   hideCard()
 }
