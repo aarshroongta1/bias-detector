@@ -19,40 +19,35 @@ body {
   min-height: 100vh;
 }
 
-/* Header - More Compact */
+/* Header - Minimal and Clean */
 .header {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  padding: 16px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 16px;
   text-align: center;
 }
 
 .logo {
-  display: inline-block;
-  margin-bottom: 8px;
-}
-
-.logo svg {
-  width: 28px;
-  height: 28px;
-  color: white;
+  display: none; /* Remove logo for cleaner look */
 }
 
 .title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
+  color: #1f2937;
   margin-bottom: 2px;
 }
 
 .subtitle {
   font-size: 12px;
-  opacity: 0.9;
+  color: #6b7280;
 }
 
 /* Main Content - More Compact */
 .main-content {
   flex: 1;
   padding: 12px;
+  background: #f9fafb;
 }
 
 /* Action Section */
@@ -126,6 +121,7 @@ body {
   border-radius: 6px;
   margin-bottom: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
 }
 
 .status-bar p {
@@ -140,6 +136,8 @@ body {
   flex-direction: column;
   gap: 10px;
   margin-bottom: 12px;
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
 }
 
 /* Success Message - More Compact */
@@ -149,6 +147,7 @@ body {
   border-radius: 8px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
 }
 
 .success-icon {
@@ -170,6 +169,7 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border-left: 3px solid;
   transition: all 0.2s;
+  border: 1px solid #e5e7eb;
 }
 
 .issue-card:hover {
@@ -322,7 +322,7 @@ body {
 
 /* Footer - Compact */
 .footer {
-  background: #f9fafb;
+  background: white;
   padding: 10px 12px;
   text-align: center;
   border-top: 1px solid #e5e7eb;
@@ -356,11 +356,11 @@ body {
 /* Responsive */
 @media (max-width: 480px) {
   .header {
-    padding: 12px;
+    padding: 10px 12px;
   }
 
   .title {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .main-content {
