@@ -8,17 +8,20 @@ const App: React.FC = () => {
   const [issues, setIssues] = React.useState<BiasIssue[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [status, setStatus] = React.useState("Ready to analyze");
-  const [emailBody, setEmailBody] = React.useState("");
+  const [originalBody, setOriginalBody] = React.useState("");
 
   const getEmailBody = (): Promise<string> => {
     return new Promise((resolve, reject) => {
-      Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, (result) => {
-        if (result.status === Office.AsyncResultStatus.Succeeded) {
-          resolve(result.value);
-        } else {
-          reject(result.error);
+      Office.context.mailbox.item.body.getAsync(
+        Office.CoercionType.Html,
+        (result) => {
+          if (result.status === Office.AsyncResultStatus.Succeeded) {
+            resolve(result.value);
+          } else {
+            reject(result.error);
+          }
         }
-      });
+      );
     });
   };
 
@@ -26,7 +29,7 @@ const App: React.FC = () => {
     return new Promise((resolve, reject) => {
       Office.context.mailbox.item.body.setAsync(
         body,
-        { coercionType: Office.CoercionType.Text },
+        { coercionType: Office.CoercionType.Html },
         (result) => {
           if (result.status === Office.AsyncResultStatus.Succeeded) {
             resolve();
@@ -38,34 +41,114 @@ const App: React.FC = () => {
     });
   };
 
+  const stripHtmlTags = (html: string): string => {
+    const tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
+
+  const getSeverityColor = (severity: string): string => {
+    switch (severity) {
+      case "high":
+        return "#fecaca"; // light red
+      case "medium":
+        return "#fef3c7"; // light yellow
+      case "low":
+        return "#d1fae5"; // light green
+      default:
+        return "#fef3c7";
+    }
+  };
+
+  const highlightIssuesInEmail = async (
+    emailHtml: string,
+    issuesToHighlight: BiasIssue[]
+  ): Promise<string> => {
+    let highlightedHtml = emailHtml;
+
+    // Sort issues by phrase length (longest first) to avoid nested replacements
+    const sortedIssues = [...issuesToHighlight].sort(
+      (a, b) => b.phrase.length - a.phrase.length
+    );
+
+    sortedIssues.forEach((issue) => {
+      const color = getSeverityColor(issue.severity);
+      const escapedPhrase = escapeRegExp(issue.phrase);
+      
+      // Create regex that matches the phrase but not already highlighted text
+      const regex = new RegExp(
+        `(?<!<[^>]*)(\\b${escapedPhrase}\\b)(?![^<]*>)`,
+        "gi"
+      );
+
+      highlightedHtml = highlightedHtml.replace(
+        regex,
+        `<span style="background-color: ${color}; padding: 2px 0; border-radius: 2px;" data-bias-phrase="${issue.phrase}">$1</span>`
+      );
+    });
+
+    return highlightedHtml;
+  };
+
+  const removeHighlightFromEmail = async (phrase: string): Promise<void> => {
+    try {
+      const currentHtml = await getEmailBody();
+      
+      // Remove the highlight span for this specific phrase
+      const escapedPhrase = escapeRegExp(phrase);
+      const regex = new RegExp(
+        `<span style="background-color: [^"]+;" data-bias-phrase="${escapedPhrase}">([^<]+)</span>`,
+        "gi"
+      );
+      
+      const cleanedHtml = currentHtml.replace(regex, "$1");
+      await setEmailBodyContent(cleanedHtml);
+    } catch (error) {
+      console.error("Failed to remove highlight:", error);
+    }
+  };
+
   const handleAnalyze = async () => {
     try {
       setLoading(true);
       setStatus("Analyzing email...");
 
-      const body = await getEmailBody();
+      const bodyHtml = await getEmailBody();
+      const bodyText = stripHtmlTags(bodyHtml);
 
-      if (!body || !body.trim()) {
+      if (!bodyText || !bodyText.trim()) {
         setStatus("No email content to analyze");
         setLoading(false);
         return;
       }
 
-      setEmailBody(body);
+      // Store original body
+      setOriginalBody(bodyHtml);
 
-      const detectedIssues = await analyzeBias(body);
+      const detectedIssues = await analyzeBias(bodyText);
       setIssues(detectedIssues);
 
       if (detectedIssues.length === 0) {
         setStatus("✓ No bias detected! Your email looks great.");
       } else {
+        // Highlight issues in the actual email
+        const highlightedHtml = await highlightIssuesInEmail(
+          bodyHtml,
+          detectedIssues
+        );
+        await setEmailBodyContent(highlightedHtml);
+
         setStatus(
-          `Found ${detectedIssues.length} potential issue${detectedIssues.length > 1 ? "s" : ""}`
+          `Found ${detectedIssues.length} potential issue${
+            detectedIssues.length > 1 ? "s" : ""
+          }`
         );
       }
     } catch (error) {
       console.error("Analysis failed:", error);
-      setStatus("❌ Analysis failed. Make sure the backend server is running on port 3000.");
+      setStatus(
+        "❌ Analysis failed. Make sure the backend server is running on port 3000."
+      );
     } finally {
       setLoading(false);
     }
@@ -75,14 +158,25 @@ const App: React.FC = () => {
     try {
       setStatus("Applying suggestion...");
 
-      const currentBody = await getEmailBody();
-      const newBody = currentBody.replace(
-        new RegExp(`\\b${escapeRegExp(issue.phrase)}\\b`, "gi"),
+      const currentHtml = await getEmailBody();
+      
+      // First remove the highlight span
+      const escapedPhrase = escapeRegExp(issue.phrase);
+      let cleanedHtml = currentHtml.replace(
+        new RegExp(
+          `<span style="background-color: [^"]+;" data-bias-phrase="${escapedPhrase}">([^<]+)</span>`,
+          "gi"
+        ),
+        "$1"
+      );
+
+      // Then replace the phrase with the suggestion
+      cleanedHtml = cleanedHtml.replace(
+        new RegExp(`\\b${escapedPhrase}\\b`, "gi"),
         issue.replacement
       );
 
-      await setEmailBodyContent(newBody);
-      setEmailBody(newBody);
+      await setEmailBodyContent(cleanedHtml);
 
       // Remove the applied issue
       const updatedIssues = issues.filter((i) => i.phrase !== issue.phrase);
@@ -103,14 +197,27 @@ const App: React.FC = () => {
     }
   };
 
-  const handleIgnore = (issue: BiasIssue) => {
-    const updatedIssues = issues.filter((i) => i.phrase !== issue.phrase);
-    setIssues(updatedIssues);
+  const handleIgnore = async (issue: BiasIssue) => {
+    try {
+      // Remove highlight from email
+      await removeHighlightFromEmail(issue.phrase);
 
-    if (updatedIssues.length === 0) {
-      setStatus("All issues resolved or ignored.");
-    } else {
-      setStatus(`${updatedIssues.length} issue${updatedIssues.length !== 1 ? "s" : ""} remaining.`);
+      // Remove from issues list
+      const updatedIssues = issues.filter((i) => i.phrase !== issue.phrase);
+      setIssues(updatedIssues);
+
+      if (updatedIssues.length === 0) {
+        setStatus("All issues resolved or ignored.");
+      } else {
+        setStatus(
+          `${updatedIssues.length} issue${
+            updatedIssues.length !== 1 ? "s" : ""
+          } remaining.`
+        );
+      }
+    } catch (error) {
+      console.error("Failed to ignore issue:", error);
+      setStatus("❌ Failed to ignore issue");
     }
   };
 
@@ -118,17 +225,29 @@ const App: React.FC = () => {
     try {
       setStatus("Applying all suggestions...");
 
-      let newBody = await getEmailBody();
+      let currentHtml = await getEmailBody();
 
+      // Remove all highlights and replace all phrases
       issues.forEach((issue) => {
-        newBody = newBody.replace(
-          new RegExp(`\\b${escapeRegExp(issue.phrase)}\\b`, "gi"),
+        const escapedPhrase = escapeRegExp(issue.phrase);
+        
+        // Remove highlight
+        currentHtml = currentHtml.replace(
+          new RegExp(
+            `<span style="background-color: [^"]+;" data-bias-phrase="${escapedPhrase}">([^<]+)</span>`,
+            "gi"
+          ),
+          "$1"
+        );
+
+        // Replace phrase
+        currentHtml = currentHtml.replace(
+          new RegExp(`\\b${escapedPhrase}\\b`, "gi"),
           issue.replacement
         );
       });
 
-      await setEmailBodyContent(newBody);
-      setEmailBody(newBody);
+      await setEmailBodyContent(currentHtml);
 
       setIssues([]);
       setStatus("✓ All suggestions applied!");
@@ -148,8 +267,8 @@ const App: React.FC = () => {
       <header className="header">
         <div className="logo">
           <svg
-            width="32"
-            height="32"
+            width="28"
+            height="28"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -185,7 +304,11 @@ const App: React.FC = () => {
       <main className="main-content">
         {/* Analyze Button */}
         <div className="action-section">
-          <button className="primary-btn" onClick={handleAnalyze} disabled={loading}>
+          <button
+            className="primary-btn"
+            onClick={handleAnalyze}
+            disabled={loading}
+          >
             {loading ? "Analyzing..." : "Analyze Email"}
           </button>
           {loading && <div className="spinner"></div>}
@@ -197,7 +320,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Results */}
-        {issues.length === 0 && !loading && emailBody && (
+        {issues.length === 0 && !loading && originalBody && (
           <div className="success-message">
             <div className="success-icon">✓</div>
             <p>No bias detected! Your email looks great.</p>
@@ -229,7 +352,7 @@ const App: React.FC = () => {
       {/* Footer */}
       <footer className="footer">
         <p>
-          Make sure your backend server is running on <strong>localhost:3000</strong>
+          Backend server: <strong>localhost:3000</strong>
         </p>
       </footer>
     </div>

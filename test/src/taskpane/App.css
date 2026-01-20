@@ -5,12 +5,12 @@
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: #f9fafb;
   color: #1f2937;
-  line-height: 1.6;
+  line-height: 1.5;
   overflow-x: hidden;
+  font-size: 13px;
 }
 
 .app-container {
@@ -19,40 +19,40 @@ body {
   min-height: 100vh;
 }
 
-/* Header */
+/* Header - More Compact */
 .header {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
-  padding: 24px 20px;
+  padding: 16px;
   text-align: center;
 }
 
 .logo {
   display: inline-block;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .logo svg {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   color: white;
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 4px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 2px;
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 12px;
   opacity: 0.9;
 }
 
-/* Main Content */
+/* Main Content - More Compact */
 .main-content {
   flex: 1;
-  padding: 20px;
+  padding: 12px;
 }
 
 /* Action Section */
@@ -60,32 +60,25 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .primary-btn {
   width: 100%;
-  padding: 14px 24px;
+  padding: 10px 16px;
   background: #3b82f6;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 .primary-btn:hover:not(:disabled) {
   background: #2563eb;
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-  transform: translateY(-1px);
-}
-
-.primary-btn:active:not(:disabled) {
-  transform: translateY(0);
 }
 
 .primary-btn:disabled {
@@ -95,13 +88,13 @@ body {
 
 .secondary-btn {
   width: 100%;
-  padding: 12px 24px;
+  padding: 8px 16px;
   background: white;
   color: #3b82f6;
   border: 2px solid #3b82f6;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -112,9 +105,9 @@ body {
 
 /* Spinner */
 .spinner {
-  width: 24px;
-  height: 24px;
-  border: 3px solid #e5e7eb;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
   border-top-color: #3b82f6;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -126,62 +119,61 @@ body {
   }
 }
 
-/* Status Bar */
+/* Status Bar - More Compact */
 .status-bar {
   background: white;
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .status-bar p {
-  font-size: 14px;
+  font-size: 12px;
   color: #6b7280;
   text-align: center;
 }
 
-/* Results Container */
+/* Results Container - More Compact */
 .results-container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-/* Success Message */
-.success-message {
-  background: white;
-  padding: 32px 20px;
-  border-radius: 12px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.success-icon {
-  font-size: 48px;
-  color: #22c55e;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
+/* Success Message - More Compact */
+.success-message {
+  background: white;
+  padding: 20px 16px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.success-icon {
+  font-size: 36px;
+  color: #22c55e;
+  margin-bottom: 8px;
+}
+
 .success-message p {
-  font-size: 16px;
+  font-size: 13px;
   color: #6b7280;
 }
 
-/* Issue Card */
+/* Issue Card - MUCH More Compact (matching Chrome extension) */
 .issue-card {
   background: white;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-left: 4px solid;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 3px solid;
   transition: all 0.2s;
 }
 
 .issue-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .issue-card.severity-low {
@@ -196,21 +188,21 @@ body {
   border-left-color: #ef4444;
 }
 
-/* Issue Header */
+/* Issue Header - Compact */
 .issue-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .severity-badge {
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .severity-badge.severity-low {
@@ -229,73 +221,76 @@ body {
 }
 
 .category-badge {
-  padding: 4px 10px;
+  padding: 2px 8px;
   background: #f3f4f6;
   color: #6b7280;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
 }
 
-/* Issue Content */
+/* Issue Content - Compact */
 .issue-content {
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .phrase-highlight {
   background: #fef3c7;
-  padding: 10px 12px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  font-size: 14px;
-  border-left: 3px solid #eab308;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  border-left: 2px solid #eab308;
 }
 
 .phrase-highlight strong {
   color: #92400e;
-  margin-right: 6px;
+  margin-right: 4px;
+  font-size: 11px;
 }
 
 .explanation {
-  font-size: 14px;
+  font-size: 12px;
   color: #4b5563;
-  margin-bottom: 12px;
-  line-height: 1.6;
+  margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 .suggestion-box {
   background: #f0fdf4;
-  padding: 12px;
-  border-radius: 6px;
-  border-left: 3px solid #22c55e;
+  padding: 8px;
+  border-radius: 4px;
+  border-left: 2px solid #22c55e;
 }
 
 .suggestion-box strong {
-  font-size: 12px;
+  font-size: 10px;
   color: #15803d;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .suggestion-text {
-  font-size: 14px;
+  font-size: 12px;
   color: #166534;
   font-weight: 500;
 }
 
-/* Issue Actions */
+/* Issue Actions - Compact */
 .issue-actions {
   display: flex;
-  gap: 10px;
+  gap: 6px;
 }
 
 .action-btn {
   flex: 1;
-  padding: 10px 16px;
+  padding: 8px 12px;
   border: none;
   border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -307,8 +302,6 @@ body {
 
 .action-btn.primary:hover {
   background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
 }
 
 .action-btn.secondary {
@@ -320,51 +313,61 @@ body {
   background: #e5e7eb;
 }
 
-/* Apply All Section */
+/* Apply All Section - Compact */
 .apply-all-section {
-  margin-top: 20px;
-  padding-top: 20px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid #e5e7eb;
 }
 
-/* Footer */
+/* Footer - Compact */
 .footer {
   background: #f9fafb;
-  padding: 16px 20px;
+  padding: 10px 12px;
   text-align: center;
   border-top: 1px solid #e5e7eb;
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 11px;
+  color: #9ca3af;
 }
 
 .footer strong {
   color: #3b82f6;
-  font-weight: 600;
+  font-weight: 500;
+}
+
+/* Scrollbar Styling */
+.results-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.results-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.results-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
   .header {
-    padding: 20px 16px;
+    padding: 12px;
   }
 
   .title {
-    font-size: 20px;
+    font-size: 16px;
   }
 
   .main-content {
-    padding: 16px;
+    padding: 10px;
   }
 
   .issue-card {
-    padding: 14px;
-  }
-
-  .issue-actions {
-    flex-direction: column;
-  }
-
-  .action-btn {
-    width: 100%;
+    padding: 10px;
   }
 }
