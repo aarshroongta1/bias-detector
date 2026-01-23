@@ -1,13 +1,32 @@
 let floatingBtn: HTMLButtonElement | null = null;
+let currentContainer: HTMLElement | null = null;
+
+function getButtonContainer(element: HTMLElement): HTMLElement {
+  // Only look for modal container on sites known to have z-index issues
+  if (location.hostname.includes("linkedin")) {
+    const modal = element.closest<HTMLElement>('[role="dialog"], [aria-modal="true"], .artdeco-modal');
+    if (modal) return modal;
+  }
+  return document.body;
+}
 
 export function showButton(element: HTMLElement, onAnalyze: () => void): void {
+  const container = getButtonContainer(element);
+
+  // If container changed, recreate button in new container
+  if (floatingBtn && currentContainer !== container) {
+    floatingBtn.remove();
+    floatingBtn = null;
+  }
+
   if (!floatingBtn) {
     floatingBtn = document.createElement("button");
     floatingBtn.className = "check-btn";
     floatingBtn.innerHTML = "B";
     floatingBtn.addEventListener("mousedown", (e) => e.preventDefault());
     floatingBtn.addEventListener("click", onAnalyze);
-    document.body.appendChild(floatingBtn);
+    container.appendChild(floatingBtn);
+    currentContainer = container;
   }
   updateButtonPosition(element);
   floatingBtn.style.display = "flex";

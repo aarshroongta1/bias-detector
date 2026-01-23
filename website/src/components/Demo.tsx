@@ -109,23 +109,23 @@ export default function Demo() {
       <div className="demo-container">
         <div className="demo-input-area">
           <div className="demo-toolbar">
-            <span className="demo-label">Your Text</span>
-            <button
-              className="btn btn-text"
-              onClick={() => setText(SAMPLE_TEXT)}
-            >
-              Load Sample
-            </button>
+            <span className="demo-label">Input</span>
           </div>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Enter or paste your text here..."
+            placeholder="Enter or paste your text here to analyze for bias..."
             rows={12}
           />
           <div className="demo-actions">
             <button
-              className="btn btn-primary btn-large"
+              className="btn btn-text"
+              onClick={() => setText(SAMPLE_TEXT)}
+            >
+              Load sample
+            </button>
+            <button
+              className="btn btn-primary"
               onClick={analyzeText}
               disabled={isLoading || !text.trim()}
             >
@@ -135,7 +135,7 @@ export default function Demo() {
                   Analyzing...
                 </>
               ) : (
-                'Analyze for Bias'
+                'Analyze'
               )}
             </button>
           </div>
@@ -186,19 +186,17 @@ export default function Demo() {
 
               <div className="issues-list">
                 {results.map((issue, index) => (
-                  <div key={index} className="issue-card">
+                  <div key={index} className={`issue-card ${issue.severity}`}>
                     <div className="issue-header">
                       <span className={`severity-badge ${issue.severity}`}>
                         {issue.severity}
                       </span>
                       <span className="issue-category">{issue.category}</span>
                     </div>
-                    <div className="issue-phrase">
-                      "{issue.phrase}"
-                    </div>
+                    <div className="issue-phrase">"{issue.phrase}"</div>
                     <p className="issue-explanation">{issue.explanation}</p>
                     <div className="issue-replacement">
-                      <span className="replacement-label">Suggested:</span>
+                      <span className="replacement-label">→</span>
                       <span className="replacement-text">{issue.replacement}</span>
                     </div>
                   </div>

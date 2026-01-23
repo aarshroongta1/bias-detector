@@ -1,28 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const categories = [
   {
     name: 'Gendered Language',
+    color: '#ec4899',
     example: { bad: 'We need a strong chairman to lead the team.', good: 'We need a strong chairperson to lead the team.', highlight: 'chairman' }
   },
   {
     name: 'Age Bias',
+    color: '#f59e0b',
     example: { bad: 'Looking for young and energetic candidates.', good: 'Looking for energetic candidates.', highlight: 'young and' }
   },
   {
     name: 'Cultural Assumptions',
+    color: '#8b5cf6',
     example: { bad: 'Please bring a dish for our Christmas party.', good: 'Please bring a dish for our holiday celebration.', highlight: 'Christmas party' }
   },
   {
     name: 'Ability Bias',
+    color: '#06b6d4',
     example: { bad: 'The team was blind to the obvious solution.', good: 'The team was unaware of the obvious solution.', highlight: 'blind to' }
   },
   {
     name: 'Socioeconomic Bias',
+    color: '#10b981',
     example: { bad: 'Programs for underprivileged communities.', good: 'Programs for under-resourced communities.', highlight: 'underprivileged' }
   },
   {
     name: 'Racial & Ethnic',
+    color: '#3b82f6',
     example: { bad: 'She speaks so articulately for someone from there.', good: 'She speaks articulately.', highlight: 'for someone from there' }
   }
 ]
@@ -30,17 +36,52 @@ const categories = [
 export default function BiasCategories() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const [direction, setDirection] = useState<'next' | 'prev'>('next')
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  const progressRef = useRef<NodeJS.Timeout | null>(null)
+
+  const DURATION = 5000
+
+  const startProgress = () => {
+    setProgress(0)
+    if (progressRef.current) clearInterval(progressRef.current)
+    const step = 100 / (DURATION / 50)
+    progressRef.current = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) return 100
+        return prev + step
+      })
+    }, 50)
+  }
+
+  const goToIndex = (index: number) => {
+    if (index === activeIndex) return
+    setDirection(index > activeIndex ? 'next' : 'prev')
+    setIsTransitioning(true)
+    setTimeout(() => {
+      setActiveIndex(index)
+      setIsTransitioning(false)
+      startProgress()
+    }, 400)
+  }
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    startProgress()
+    intervalRef.current = setInterval(() => {
+      setDirection('next')
       setIsTransitioning(true)
       setTimeout(() => {
         setActiveIndex((prev) => (prev + 1) % categories.length)
         setIsTransitioning(false)
-      }, 300)
-    }, 4000)
+        startProgress()
+      }, 400)
+    }, DURATION)
 
-    return () => clearInterval(interval)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (progressRef.current) clearInterval(progressRef.current)
+    }
   }, [])
 
   const active = categories[activeIndex]
@@ -67,19 +108,14 @@ export default function BiasCategories() {
       </div>
 
       <div className="showcase-container">
-        {/* Category Pills */}
-        <div className="category-pills">
+        {/* Vertical Category Navigation */}
+        <div className="category-sidebar">
           {categories.map((cat, index) => (
             <button
               key={index}
-              className={`pill ${index === activeIndex ? 'active' : ''}`}
-              onClick={() => {
-                setIsTransitioning(true)
-                setTimeout(() => {
-                  setActiveIndex(index)
-                  setIsTransitioning(false)
-                }, 300)
-              }}
+              className={`category-tab-v2 ${index === activeIndex ? 'active' : ''}`}
+              onClick={() => goToIndex(index)}
+              style={{ '--tab-color': cat.color } as React.CSSProperties}
             >
               {cat.name}
             </button>
@@ -87,42 +123,68 @@ export default function BiasCategories() {
         </div>
 
         {/* Showcase Card */}
-        <div className={`showcase-card ${isTransitioning ? 'transitioning' : ''}`}>
-          <div className="showcase-before">
-            <span className="showcase-label">Before</span>
-            <p className="showcase-text">
-              {renderHighlightedText(active.example.bad, active.example.highlight, true)}
-            </p>
-          </div>
+        <div className="showcase-wrapper">
+          <div className={`showcase-card-v2 ${isTransitioning ? `transitioning-${direction}` : ''}`}>
+            {/* Decorative elements */}
+            <div className="card-glow" style={{ background: `radial-gradient(circle at 30% 30%, ${active.color}15, transparent 70%)` }} />
 
-          <div className="showcase-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </div>
+            <div className="showcase-content">
+              <div className="showcase-before-v2">
+                <div className="showcase-label-v2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                  Original
+                </div>
+                <p className="showcase-text-v2">
+                  {renderHighlightedText(active.example.bad, active.example.highlight, true)}
+                </p>
+              </div>
 
-          <div className="showcase-after">
-            <span className="showcase-label">After</span>
-            <p className="showcase-text">
-              {active.example.good}
-            </p>
+              <div className="showcase-divider">
+                <div className="divider-line" />
+                <div className="divider-icon" style={{ borderColor: active.color, color: active.color }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M5 12h14"/>
+                    <path d="M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
+                <div className="divider-line" />
+              </div>
+
+              <div className="showcase-after-v2">
+                <div className="showcase-label-v2 success">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9 12l2 2 4-4"/>
+                  </svg>
+                  Improved
+                </div>
+                <p className="showcase-text-v2 improved">
+                  {active.example.good}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Progress Dots */}
-        <div className="showcase-dots">
-          {categories.map((_, index) => (
+        {/* Mobile Progress Dots */}
+        <div className="showcase-dots-v2">
+          {categories.map((cat, index) => (
             <button
               key={index}
-              className={`dot ${index === activeIndex ? 'active' : ''}`}
-              onClick={() => {
-                setIsTransitioning(true)
-                setTimeout(() => {
-                  setActiveIndex(index)
-                  setIsTransitioning(false)
-                }, 300)
-              }}
-            />
+              className={`dot-v2 ${index === activeIndex ? 'active' : ''}`}
+              onClick={() => goToIndex(index)}
+              style={{ '--dot-color': cat.color } as React.CSSProperties}
+            >
+              {index === activeIndex && (
+                <svg className="dot-progress" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="16" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray={`${progress}, 100`} />
+                </svg>
+              )}
+            </button>
           ))}
         </div>
       </div>

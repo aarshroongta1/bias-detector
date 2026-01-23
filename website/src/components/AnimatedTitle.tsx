@@ -107,12 +107,11 @@ export default function AnimatedTitle() {
             <div className={`hover-card ${phase === 'clicking' ? 'clicking' : ''}`}>
               <div className="hover-card-header">
                 <span className="severity-badge medium">medium</span>
-                <span className="category-text">Gendered Language</span>
+                <span className="category-text">Overlooked issue</span>
               </div>
               <div className="hover-card-body">
                 <p className="explanation-text">
-                  The word "Bias" represents prejudiced thinking. Replace with inclusive,
-                  awareness-driven language.
+                  Need an intuitive way to identify and address bias in your writing?
                 </p>
                 <div className="suggestion-box">
                   <span className="suggestion-label">Suggested replacement:</span>
