@@ -28,7 +28,18 @@ body {
 }
 
 .logo {
-  display: none; /* Remove logo for cleaner look */
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #3b82f6;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  margin: 0 auto 8px;
 }
 
 .title {
@@ -114,14 +125,14 @@ body {
   }
 }
 
-/* Status Bar - More Compact */
+/* Status Bar - Fixed at Bottom */
 .status-bar {
   background: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  border-top: 1px solid #e5e7eb;
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
 }
 
 .status-bar p {
