@@ -112,11 +112,20 @@ function wrapTextRange(
         if (overlapStart < overlapEnd) {
           const text = textNode.textContent || ""
 
-          // Create the highlight span
+          // Create the highlight span with inline styles for maximum compatibility
           const span = document.createElement("span")
           span.className = `bias-highlight severity-${issue.severity}`
           span.dataset.biasIndex = String(issueIndex)
           span.textContent = text.slice(overlapStart, overlapEnd)
+
+          // Apply inline styles to bypass CSS isolation (Slack, etc.)
+          const colors = {
+            low: { bg: "rgba(34, 197, 94, 0.25)", border: "#22c55e" },
+            medium: { bg: "rgba(234, 179, 8, 0.25)", border: "#eab308" },
+            high: { bg: "rgba(239, 68, 68, 0.25)", border: "#ef4444" }
+          }
+          const color = colors[issue.severity] || colors.medium
+          span.style.cssText = `background: ${color.bg} !important; border-bottom: 2px solid ${color.border} !important; border-radius: 2px !important; padding: 1px 0 !important; cursor: pointer !important;`
 
           // Split: before | highlight | after
           const before = text.slice(0, overlapStart)

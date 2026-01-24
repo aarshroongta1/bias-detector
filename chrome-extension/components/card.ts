@@ -33,15 +33,33 @@ export function showCard(
     </div>
   `
 
-  let top = rect.bottom + 8
+  // Position card below the phrase with enough gap
+  let top = rect.bottom + 12
   let left = rect.left
-  if (left + 320 > window.innerWidth) left = window.innerWidth - 330
-  if (top + 200 > window.innerHeight) top = rect.top - 210
 
-  card.style.position = "fixed"
-  card.style.top = `${top}px`
-  card.style.left = `${left}px`
-  card.style.zIndex = "2147483647"
+  // Keep card within viewport horizontally
+  if (left + 320 > window.innerWidth) left = window.innerWidth - 330
+  if (left < 10) left = 10
+
+  // If card would go off bottom, show above the phrase instead
+  if (top + 250 > window.innerHeight) top = rect.top - 260
+
+  // Apply inline styles for maximum compatibility (Slack, etc.)
+  card.style.cssText = `
+    position: fixed !important;
+    top: ${top}px !important;
+    left: ${left}px !important;
+    z-index: 2147483647 !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    padding: 12px !important;
+    max-width: 320px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    color: #374151 !important;
+  `
 
   card
     .querySelector('[data-action="replace"]')

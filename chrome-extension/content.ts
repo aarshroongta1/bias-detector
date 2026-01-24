@@ -172,6 +172,11 @@ async function handleAnalyze(): Promise<void> {
       element.isContentEditable
     )
 
+    console.log("[BiasDetector] Issues count:", issues.length)
+    console.log("[BiasDetector] isOutlook:", isOutlook())
+    console.log("[BiasDetector] tagName:", element.tagName.toLowerCase())
+    console.log("[BiasDetector] hostname:", location.hostname)
+
     if (issues.length === 0) {
       setButtonSuccess()
     } else if (isOutlook()) {
@@ -180,7 +185,9 @@ async function handleAnalyze(): Promise<void> {
     } else if (element.tagName.toLowerCase() === "textarea") {
       highlightTextarea(element as HTMLTextAreaElement, issues)
     } else {
+      console.log("[BiasDetector] Calling highlightIssues...")
       highlightIssues(element, issues)
+      console.log("[BiasDetector] highlightIssues completed")
     }
   } catch (err) {
     console.error("Analysis failed:", err)

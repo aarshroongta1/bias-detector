@@ -1,23 +1,24 @@
 const STYLES = `
-.bias-highlight {
-  border-radius: 2px;
-  padding: 1px 0;
-  cursor: pointer;
+span.bias-highlight {
+  border-radius: 2px !important;
+  padding: 1px 0 !important;
+  cursor: pointer !important;
+  display: inline !important;
 }
 
-.severity-low {
-  background: rgba(34, 197, 94, 0.25);
-  border-bottom: 2px solid #22c55e;
+span.bias-highlight.severity-low {
+  background: rgba(34, 197, 94, 0.25) !important;
+  border-bottom: 2px solid #22c55e !important;
 }
 
-.severity-medium {
-  background: rgba(234, 179, 8, 0.25);
-  border-bottom: 2px solid #eab308;
+span.bias-highlight.severity-medium {
+  background: rgba(234, 179, 8, 0.25) !important;
+  border-bottom: 2px solid #eab308 !important;
 }
 
-.severity-high {
-  background: rgba(239, 68, 68, 0.25);
-  border-bottom: 2px solid #ef4444;
+span.bias-highlight.severity-high {
+  background: rgba(239, 68, 68, 0.25) !important;
+  border-bottom: 2px solid #ef4444 !important;
 }
 
 .hover-card {
