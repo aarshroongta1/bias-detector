@@ -10,7 +10,8 @@ const App: React.FC = () => {
   const [status, setStatus] = React.useState("Ready to analyze");
   const [emailBody, setEmailBody] = React.useState("");
 
-  const getEmailBody = (): Promise<string> => {
+  // Get plain text for analysis (API needs clean text)
+  const getEmailBodyText = (): Promise<string> => {
     return new Promise((resolve, reject) => {
       Office.context.mailbox.item.body.getAsync(Office.CoercionType.Text, (result) => {
         if (result.status === Office.AsyncResultStatus.Succeeded) {
@@ -22,11 +23,25 @@ const App: React.FC = () => {
     });
   };
 
-  const setEmailBodyContent = (body: string): Promise<void> => {
+  // Get HTML for replacement (preserves formatting)
+  const getEmailBodyHtml = (): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      Office.context.mailbox.item.body.getAsync(Office.CoercionType.Html, (result) => {
+        if (result.status === Office.AsyncResultStatus.Succeeded) {
+          resolve(result.value);
+        } else {
+          reject(result.error);
+        }
+      });
+    });
+  };
+
+  // Set HTML body (preserves formatting)
+  const setEmailBodyHtml = (html: string): Promise<void> => {
     return new Promise((resolve, reject) => {
       Office.context.mailbox.item.body.setAsync(
-        body,
-        { coercionType: Office.CoercionType.Text },
+        html,
+        { coercionType: Office.CoercionType.Html },
         (result) => {
           if (result.status === Office.AsyncResultStatus.Succeeded) {
             resolve();
@@ -43,7 +58,7 @@ const App: React.FC = () => {
       setLoading(true);
       setStatus("Analyzing email...");
 
-      const body = await getEmailBody();
+      const body = await getEmailBodyText();
 
       if (!body || !body.trim()) {
         setStatus("No email content to analyze");
@@ -75,14 +90,14 @@ const App: React.FC = () => {
     try {
       setStatus("Applying suggestion...");
 
-      const currentBody = await getEmailBody();
-      const newBody = currentBody.replace(
+      const currentHtml = await getEmailBodyHtml();
+      const newHtml = currentHtml.replace(
         new RegExp(`\\b${escapeRegExp(issue.phrase)}\\b`, "gi"),
         issue.replacement
       );
 
-      await setEmailBodyContent(newBody);
-      setEmailBody(newBody);
+      await setEmailBodyHtml(newHtml);
+      setEmailBody(newHtml);
 
       // Remove the applied issue
       const updatedIssues = issues.filter((i) => i.phrase !== issue.phrase);
@@ -118,17 +133,17 @@ const App: React.FC = () => {
     try {
       setStatus("Applying all suggestions...");
 
-      let newBody = await getEmailBody();
+      let newHtml = await getEmailBodyHtml();
 
       issues.forEach((issue) => {
-        newBody = newBody.replace(
+        newHtml = newHtml.replace(
           new RegExp(`\\b${escapeRegExp(issue.phrase)}\\b`, "gi"),
           issue.replacement
         );
       });
 
-      await setEmailBodyContent(newBody);
-      setEmailBody(newBody);
+      await setEmailBodyHtml(newHtml);
+      setEmailBody(newHtml);
 
       setIssues([]);
       setStatus("✓ All suggestions applied!");
