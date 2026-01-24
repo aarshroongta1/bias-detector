@@ -45,16 +45,46 @@ function getEditorText(el: HTMLElement): string {
     return (el as HTMLTextAreaElement).value
   }
 
-  // Outlook / rich editors - use TreeWalker for reliable extraction
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null)
+  // Rich editors - walk through all nodes and preserve line breaks
+  return extractTextWithLineBreaks(el).replace(/\u200B/g, "").trim()
+}
 
+function extractTextWithLineBreaks(el: HTMLElement): string {
   let text = ""
-  let node
-  while ((node = walker.nextNode())) {
-    text += node.textContent
+  const blockTags = new Set(["DIV", "P", "BR", "LI", "TR", "H1", "H2", "H3", "H4", "H5", "H6"])
+
+  function walk(node: Node): void {
+    if (node.nodeType === Node.TEXT_NODE) {
+      text += node.textContent || ""
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node as HTMLElement
+      const tagName = el.tagName
+
+      // Add newline before block elements (except at start)
+      if (blockTags.has(tagName) && text.length > 0 && !text.endsWith("\n")) {
+        text += "\n"
+      }
+
+      // BR always adds a newline
+      if (tagName === "BR") {
+        text += "\n"
+        return
+      }
+
+      // Recurse into children
+      for (const child of node.childNodes) {
+        walk(child)
+      }
+
+      // Add newline after block elements
+      if (blockTags.has(tagName) && tagName !== "BR" && !text.endsWith("\n")) {
+        text += "\n"
+      }
+    }
   }
 
-  return text.replace(/\u200B/g, "").trim() // remove zero-width spaces
+  walk(el)
+  return text
 }
 
 function init(): void {
@@ -121,7 +151,9 @@ async function handleAnalyze(): Promise<void> {
   if (!activeElement) return
 
   const element = activeElement // Store reference before async call
+  console.log("[BiasDetector] Element innerHTML:", element.innerHTML.substring(0, 500))
   const text = getEditorText(element)
+  console.log("[BiasDetector] Extracted text:", JSON.stringify(text))
 
   if (!text.trim()) {
     alert("No text to analyze")

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 interface BiasIssue {
   phrase: string
@@ -15,6 +15,12 @@ interface AnalysisResult {
   }
 }
 
+interface HoverCardData {
+  issue: BiasIssue
+  positionIndex: number
+  rect: DOMRect
+}
+
 const SAMPLE_TEXT = `Dear Team,
 
 We're looking for a young, energetic chairman to lead our new initiative. The ideal candidate should be a strong man who can manage manpower effectively.
@@ -28,6 +34,10 @@ export default function Demo() {
   const [results, setResults] = useState<BiasIssue[] | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hoveredCard, setHoveredCard] = useState<HoverCardData | null>(null)
+  const [isEditing, setIsEditing] = useState(true)
+  const editorRef = useRef<HTMLDivElement>(null)
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const analyzeText = async () => {
     if (!text.trim()) return
@@ -35,6 +45,7 @@ export default function Demo() {
     setIsLoading(true)
     setError(null)
     setResults(null)
+    setIsEditing(false)
 
     try {
       const response = await fetch('http://localhost:3001/analyze', {
@@ -51,51 +62,166 @@ export default function Demo() {
       setResults(data.results.biases)
     } catch (err) {
       setError('Unable to connect to the analysis server. Make sure the server is running on port 3001.')
+      setIsEditing(true)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const getHighlightedText = () => {
-    if (!results || results.length === 0) return text
+  const handleEditorInput = () => {
+    if (editorRef.current && isEditing) {
+      setText(editorRef.current.innerText || '')
+    }
+  }
 
-    const sortedPositions: { start: number; end: number; severity: string; issue: BiasIssue }[] = []
+  const handleHighlightMouseEnter = (
+    e: React.MouseEvent<HTMLSpanElement>,
+    issue: BiasIssue,
+    positionIndex: number
+  ) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+    }
+    const rect = e.currentTarget.getBoundingClientRect()
+    setHoveredCard({ issue, positionIndex, rect })
+  }
 
+  const handleHighlightMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredCard(null)
+    }, 150)
+  }
+
+  const handleCardMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current)
+    }
+  }
+
+  const handleCardMouseLeave = () => {
+    setHoveredCard(null)
+  }
+
+  const handleApplyFix = (issue: BiasIssue, positionIndex: number) => {
+    const pos = issue.positions[positionIndex]
+    const newText = text.slice(0, pos.start) + issue.replacement + text.slice(pos.end)
+    setText(newText)
+    setHoveredCard(null)
+
+    // Update results to remove the fixed issue position
+    if (results) {
+      const updatedResults = results.map(r => {
+        if (r === issue) {
+          const newPositions = r.positions.filter((_, i) => i !== positionIndex)
+          // Adjust positions after the fix
+          const lengthDiff = issue.replacement.length - (pos.end - pos.start)
+          const adjustedPositions = newPositions.map(p => {
+            if (p.start > pos.start) {
+              return { start: p.start + lengthDiff, end: p.end + lengthDiff }
+            }
+            return p
+          })
+          return { ...r, positions: adjustedPositions }
+        }
+        // Adjust positions in other issues too
+        const lengthDiff = issue.replacement.length - (pos.end - pos.start)
+        const adjustedPositions = r.positions.map(p => {
+          if (p.start > pos.start) {
+            return { start: p.start + lengthDiff, end: p.end + lengthDiff }
+          }
+          return p
+        })
+        return { ...r, positions: adjustedPositions }
+      }).filter(r => r.positions.length > 0)
+
+      setResults(updatedResults)
+    }
+  }
+
+  const handleReset = () => {
+    setResults(null)
+    setIsEditing(true)
+    setHoveredCard(null)
+  }
+
+  const renderHighlightedContent = () => {
+    if (!results || results.length === 0) {
+      return text
+    }
+
+    // Collect all positions with their issue references
+    const allPositions: { start: number; end: number; issue: BiasIssue; posIndex: number }[] = []
     results.forEach(issue => {
-      issue.positions.forEach(pos => {
-        sortedPositions.push({ ...pos, severity: issue.severity, issue })
+      issue.positions.forEach((pos, posIndex) => {
+        allPositions.push({ ...pos, issue, posIndex })
       })
     })
 
-    sortedPositions.sort((a, b) => a.start - b.start)
+    // Sort by start position, then by length (longer first for overlaps)
+    allPositions.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start))
 
-    const elements: (string | JSX.Element)[] = []
+    // Filter out overlapping positions
+    const filtered: typeof allPositions = []
+    for (const pos of allPositions) {
+      const overlaps = filtered.some(f => pos.start < f.end && pos.end > f.start)
+      if (!overlaps) filtered.push(pos)
+    }
+
+    // Build the highlighted content
+    const elements: React.ReactNode[] = []
     let lastEnd = 0
 
-    sortedPositions.forEach((pos, index) => {
+    filtered.forEach((pos, index) => {
+      // Add text before this highlight
       if (pos.start > lastEnd) {
         elements.push(text.slice(lastEnd, pos.start))
       }
-      if (pos.start >= lastEnd) {
-        elements.push(
-          <span
-            key={index}
-            className={`bias-highlight ${pos.severity}`}
-            title={`${pos.issue.category}: ${pos.issue.explanation}`}
-          >
-            {text.slice(pos.start, pos.end)}
-          </span>
-        )
-        lastEnd = pos.end
-      }
+
+      // Add the highlighted span
+      elements.push(
+        <span
+          key={index}
+          className={`bias-highlight ${pos.issue.severity}`}
+          onMouseEnter={(e) => handleHighlightMouseEnter(e, pos.issue, pos.posIndex)}
+          onMouseLeave={handleHighlightMouseLeave}
+        >
+          {text.slice(pos.start, pos.end)}
+        </span>
+      )
+
+      lastEnd = pos.end
     })
 
+    // Add remaining text
     if (lastEnd < text.length) {
       elements.push(text.slice(lastEnd))
     }
 
     return elements
   }
+
+  // Calculate card position
+  const getCardPosition = () => {
+    if (!hoveredCard) return {}
+
+    const { rect } = hoveredCard
+    let top = rect.bottom + 8
+    let left = rect.left
+
+    // Adjust if too close to right edge
+    if (left + 320 > window.innerWidth) {
+      left = window.innerWidth - 340
+    }
+
+    // Adjust if too close to bottom
+    if (top + 200 > window.innerHeight) {
+      top = rect.top - 210
+    }
+
+    return { top: `${top}px`, left: `${left}px` }
+  }
+
+  const issueCount = results?.reduce((acc, r) => acc + r.positions.length, 0) || 0
 
   return (
     <section className="demo" id="demo">
@@ -106,106 +232,110 @@ export default function Demo() {
         </p>
       </div>
 
-      <div className="demo-container">
-        <div className="demo-input-area">
-          <div className="demo-toolbar">
-            <span className="demo-label">Input</span>
+      <div className="demo-container-v2">
+        <div className="demo-toolbar">
+          <span className="demo-label">
+            {isEditing ? 'Editor' : 'Analysis Results'}
+          </span>
+          {results && issueCount > 0 && (
+            <span className="results-count">
+              {issueCount} issue{issueCount !== 1 ? 's' : ''} found
+            </span>
+          )}
+          {results && results.length === 0 && (
+            <span className="results-count success">No bias detected</span>
+          )}
+        </div>
+
+        {error && (
+          <div className="demo-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{error}</span>
           </div>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Enter or paste your text here to analyze for bias..."
-            rows={12}
-          />
-          <div className="demo-actions">
+        )}
+
+        <div className="demo-editor-wrapper">
+          {isEditing ? (
+            <div
+              ref={editorRef}
+              className="demo-editor"
+              contentEditable
+              suppressContentEditableWarning
+              onInput={handleEditorInput}
+              dangerouslySetInnerHTML={{ __html: text.replace(/\n/g, '<br>') }}
+            />
+          ) : (
+            <div className="demo-editor readonly">
+              {renderHighlightedContent()}
+            </div>
+          )}
+        </div>
+
+        <div className="demo-actions">
+          <div className="demo-actions-left">
             <button
               className="btn btn-text"
-              onClick={() => setText(SAMPLE_TEXT)}
+              onClick={() => {
+                setText(SAMPLE_TEXT)
+                if (editorRef.current && isEditing) {
+                  editorRef.current.innerHTML = SAMPLE_TEXT.replace(/\n/g, '<br>')
+                }
+              }}
             >
               Load sample
             </button>
-            <button
-              className="btn btn-primary"
-              onClick={analyzeText}
-              disabled={isLoading || !text.trim()}
-            >
-              {isLoading ? (
-                <>
-                  <span className="spinner"></span>
-                  Analyzing...
-                </>
-              ) : (
-                'Analyze'
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="demo-results-area">
-          <div className="demo-toolbar">
-            <span className="demo-label">Results</span>
             {results && (
-              <span className="results-count">
-                {results.length} issue{results.length !== 1 ? 's' : ''} found
-              </span>
+              <button className="btn btn-text" onClick={handleReset}>
+                Edit text
+              </button>
             )}
           </div>
-
-          {error && (
-            <div className="demo-error">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
-
-          {!results && !error && !isLoading && (
-            <div className="demo-placeholder">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              <p>Click "Analyze for Bias" to see results</p>
-            </div>
-          )}
-
-          {results && results.length === 0 && (
-            <div className="demo-success">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p>No bias detected! Your text looks inclusive.</p>
-            </div>
-          )}
-
-          {results && results.length > 0 && (
-            <>
-              <div className="highlighted-text">
-                {getHighlightedText()}
-              </div>
-
-              <div className="issues-list">
-                {results.map((issue, index) => (
-                  <div key={index} className={`issue-card ${issue.severity}`}>
-                    <div className="issue-header">
-                      <span className={`severity-badge ${issue.severity}`}>
-                        {issue.severity}
-                      </span>
-                      <span className="issue-category">{issue.category}</span>
-                    </div>
-                    <div className="issue-phrase">"{issue.phrase}"</div>
-                    <p className="issue-explanation">{issue.explanation}</p>
-                    <div className="issue-replacement">
-                      <span className="replacement-label">→</span>
-                      <span className="replacement-text">{issue.replacement}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+          <button
+            className="btn btn-primary"
+            onClick={analyzeText}
+            disabled={isLoading || !text.trim()}
+          >
+            {isLoading ? (
+              <>
+                <span className="spinner"></span>
+                Analyzing...
+              </>
+            ) : (
+              'Analyze'
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Hover Card */}
+      {hoveredCard && (
+        <div
+          className="demo-hover-card"
+          style={getCardPosition()}
+          onMouseEnter={handleCardMouseEnter}
+          onMouseLeave={handleCardMouseLeave}
+        >
+          <div className="hover-card-header">
+            <span className={`severity-badge ${hoveredCard.issue.severity}`}>
+              {hoveredCard.issue.severity}
+            </span>
+            <span className="hover-card-category">{hoveredCard.issue.category}</span>
+          </div>
+          <p className="hover-card-explanation">{hoveredCard.issue.explanation}</p>
+          <div className="hover-card-suggestion">
+            <span className="suggestion-label">Suggestion:</span>
+            <span className="suggestion-text">"{hoveredCard.issue.replacement}"</span>
+          </div>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => handleApplyFix(hoveredCard.issue, hoveredCard.positionIndex)}
+          >
+            Apply Fix
+          </button>
+        </div>
+      )}
     </section>
   )
 }

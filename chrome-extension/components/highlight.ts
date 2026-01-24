@@ -12,6 +12,9 @@ export function highlightIssues(
   element: HTMLElement,
   issues: BiasIssue[]
 ): void {
+  console.log("[BiasDetector] highlightIssues called")
+  console.log("[BiasDetector] Element innerHTML BEFORE:", element.innerHTML.substring(0, 500))
+
   clearHighlights(element)
 
   // Collect all ranges and sort by start position
@@ -36,24 +39,17 @@ export function highlightIssues(
     }
   }
 
-  // Build HTML with highlights using positions
-  const text = element.innerText || element.textContent || ""
-  let html = ""
-  let lastEnd = 0
+  // Use DOM manipulation to preserve formatting
+  // Sort ranges in reverse order so we can modify from end to start
+  const sortedRanges = [...filtered].sort((a, b) => b.start - a.start)
 
-  for (const range of filtered) {
-    // Add text before this highlight
-    html += escapeHtml(text.slice(lastEnd, range.start))
-    // Add highlighted text
-    const highlightedText = text.slice(range.start, range.end)
-    html += `<span class="bias-highlight severity-${range.issue.severity}" data-bias-index="${range.issueIndex}">${escapeHtml(highlightedText)}</span>`
-    lastEnd = range.end
+  console.log("[BiasDetector] Ranges to highlight:", sortedRanges.map(r => ({ start: r.start, end: r.end, phrase: r.issue.phrase })))
+
+  for (const range of sortedRanges) {
+    wrapTextRange(element, range.start, range.end, range.issue, range.issueIndex)
   }
 
-  // Add remaining text
-  html += escapeHtml(text.slice(lastEnd))
-
-  element.innerHTML = html
+  console.log("[BiasDetector] Element innerHTML AFTER:", element.innerHTML.substring(0, 500))
 
   // Add event listeners
   element.querySelectorAll(".bias-highlight").forEach((el) => {
@@ -88,11 +84,96 @@ function removeHighlight(target: HTMLElement): void {
   target.replaceWith(document.createTextNode(target.textContent || ""))
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
+const BLOCK_TAGS = new Set(["DIV", "P", "BR", "LI", "TR", "H1", "H2", "H3", "H4", "H5", "H6"])
+
+function wrapTextRange(
+  container: HTMLElement,
+  start: number,
+  end: number,
+  issue: BiasIssue,
+  issueIndex: number
+): void {
+  // Walk through nodes tracking position the same way as text extraction
+  let currentOffset = 0
+  let lastWasBlock = false
+
+  function walk(node: Node): boolean {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const textNode = node as Text
+      const nodeLength = textNode.textContent?.length || 0
+      const nodeStart = currentOffset
+      const nodeEnd = currentOffset + nodeLength
+
+      // Check if this text node overlaps with our target range
+      if (nodeEnd > start && nodeStart < end) {
+        const overlapStart = Math.max(0, start - nodeStart)
+        const overlapEnd = Math.min(nodeLength, end - nodeStart)
+
+        if (overlapStart < overlapEnd) {
+          const text = textNode.textContent || ""
+
+          // Create the highlight span
+          const span = document.createElement("span")
+          span.className = `bias-highlight severity-${issue.severity}`
+          span.dataset.biasIndex = String(issueIndex)
+          span.textContent = text.slice(overlapStart, overlapEnd)
+
+          // Split: before | highlight | after
+          const before = text.slice(0, overlapStart)
+          const after = text.slice(overlapEnd)
+
+          const parent = textNode.parentNode
+          if (parent) {
+            if (after) {
+              parent.insertBefore(document.createTextNode(after), textNode.nextSibling)
+            }
+            parent.insertBefore(span, textNode.nextSibling)
+            if (before) {
+              textNode.textContent = before
+            } else {
+              parent.removeChild(textNode)
+            }
+          }
+
+          return true // Found and wrapped
+        }
+      }
+
+      currentOffset = nodeEnd
+      lastWasBlock = false
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node as HTMLElement
+      const tagName = el.tagName
+
+      // Add newline offset for block elements (matching text extraction logic)
+      if (BLOCK_TAGS.has(tagName) && currentOffset > 0 && !lastWasBlock) {
+        currentOffset += 1
+        lastWasBlock = true
+      }
+
+      // BR adds a newline
+      if (tagName === "BR") {
+        currentOffset += 1
+        lastWasBlock = true
+        return false
+      }
+
+      // Recurse into children
+      for (const child of Array.from(node.childNodes)) {
+        if (walk(child)) return true
+      }
+
+      // Add newline after block elements
+      if (BLOCK_TAGS.has(tagName) && tagName !== "BR" && !lastWasBlock) {
+        currentOffset += 1
+        lastWasBlock = true
+      }
+    }
+
+    return false
+  }
+
+  walk(container)
 }
 
 export function clearHighlights(element: HTMLElement): void {

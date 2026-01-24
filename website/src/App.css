@@ -1241,6 +1241,190 @@ section {
   font-family: "SF Mono", "Menlo", "Monaco", "Courier New", monospace;
 }
 
+/* Demo V2 - Single Editor with Inline Highlights */
+.demo-container-v2 {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.demo-container-v2 .demo-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.demo-container-v2 .results-count {
+  font-size: 0.75rem;
+  color: white;
+  background: var(--primary);
+  padding: 0.25rem 0.625rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.demo-container-v2 .results-count.success {
+  background: var(--severity-low);
+}
+
+.demo-editor-wrapper {
+  padding: 0;
+}
+
+.demo-editor {
+  min-height: 280px;
+  padding: 1.25rem 1.5rem;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  background: white;
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.demo-editor:focus {
+  background: white;
+}
+
+.demo-editor.readonly {
+  cursor: default;
+}
+
+.demo-editor .bias-highlight {
+  padding: 2px 4px;
+  margin: 0 -2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.demo-editor .bias-highlight:hover {
+  filter: brightness(0.95);
+}
+
+.demo-editor .bias-highlight.low {
+  background: rgba(34, 197, 94, 0.2);
+  border-bottom: 2px solid #22c55e;
+}
+
+.demo-editor .bias-highlight.medium {
+  background: rgba(234, 179, 8, 0.2);
+  border-bottom: 2px solid #eab308;
+}
+
+.demo-editor .bias-highlight.high {
+  background: rgba(239, 68, 68, 0.2);
+  border-bottom: 2px solid #ef4444;
+}
+
+.demo-container-v2 .demo-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+
+.demo-actions-left {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.demo-container-v2 .demo-error {
+  margin: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  flex-direction: row;
+  gap: 0.75rem;
+}
+
+.demo-container-v2 .demo-error svg {
+  width: 20px;
+  height: 20px;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+/* Demo Hover Card */
+.demo-hover-card {
+  position: fixed;
+  z-index: 10000;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  max-width: 320px;
+  animation: demoCardSlideIn 0.2s ease-out;
+}
+
+@keyframes demoCardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hover-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.hover-card-category {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.hover-card-explanation {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+
+.hover-card-suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--severity-low-bg);
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.suggestion-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.suggestion-text {
+  font-size: 0.85rem;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.demo-hover-card .btn-sm {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+}
+
 /* Platforms Section */
 .platforms-section {
   background: var(--bg-secondary);
@@ -1584,6 +1768,37 @@ section {
 
   .animated-title {
     font-size: 2.5rem;
+  }
+
+  /* Demo V2 mobile */
+  .demo-container-v2 {
+    border-radius: 12px;
+  }
+
+  .demo-editor {
+    min-height: 200px;
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .demo-container-v2 .demo-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .demo-actions-left {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .demo-container-v2 .demo-actions .btn-primary {
+    width: 100%;
+  }
+
+  .demo-hover-card {
+    max-width: calc(100vw - 2rem);
+    left: 1rem !important;
+    right: 1rem;
   }
 }
 

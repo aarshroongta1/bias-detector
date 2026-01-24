@@ -36,9 +36,11 @@ For each biased phrase, return:
 NOTE:
 - Report each biased word or short phrase separately, even if they appear near each other.
 - Give only one replacement suggestion per biased phrase that addresses the bias.
-- Carefully choose phrases: keep them short (3-4 words max) and split if long. Make sure only the biased part is included.
+- Carefully choose phrases: keep them short (1-4 words ideally) and maybe split if long. Make sure only the biased part is included.
 - Don't go overkill. Stick to actual biases.
 - Be helpful, not preachy. Focus on genuine issues. 
+
+PLEASE MAKE THE EXACT REPLACEMENTS YOURSELF AND MAKE SURE THE SENTENCE AS A WHOLE IS STILL GRAMMATICALLY CORRECT AND MAKES SENSE.
 `;
 
 const Bias = z.object({
