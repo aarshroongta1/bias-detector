@@ -48,7 +48,7 @@ export default function Demo() {
     setIsEditing(false)
 
     try {
-      const response = await fetch('http://localhost:3001/analyze', {
+      const response = await fetch('https://bias-detector-2ih2.onrender.com/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
@@ -61,7 +61,7 @@ export default function Demo() {
       const data: AnalysisResult = await response.json()
       setResults(data.results.biases)
     } catch (err) {
-      setError('Unable to connect to the analysis server. Make sure the server is running on port 3001.')
+      setError('Unable to connect to the analysis server. Please try again later.')
       setIsEditing(true)
     } finally {
       setIsLoading(false)

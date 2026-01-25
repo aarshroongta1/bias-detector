@@ -1,6 +1,6 @@
 import type { BiasIssue } from "./type"
 
-const API_URL = "http://localhost:3001/analyze"
+const API_URL = "https://bias-detector-2ih2.onrender.com/analyze"
 
 export async function analyzeBias(text: string): Promise<BiasIssue[]> {
   const response = await fetch(API_URL, {
