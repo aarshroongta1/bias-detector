@@ -27,13 +27,7 @@ function createBiasDetectorCard() {
 
   section.addWidget(
     CardService.newTextParagraph().setText(
-      '<font color="#1f2937"><b>Bias Detector</b></font>',
-    ),
-  );
-
-  section.addWidget(
-    CardService.newTextParagraph().setText(
-      '<font color="#6b7280">Analyzes text for implicit bias including gendered language, assumptions, and stereotypes.</font>',
+      '<font color="#6b7280">Analyzes text for implicit bias</font>',
     ),
   );
 
@@ -89,6 +83,9 @@ function analyzeFullDocument(e) {
       highlightIssuesInDoc(issues);
     }
 
+    // Store issues for state management
+    storeIssues(issues, "Full Document");
+
     return createResultCard(issues, "Full Document");
   } catch (error) {
     Logger.log("Error in analyzeFullDocument: " + error);
@@ -128,6 +125,9 @@ function analyzeSelection(e) {
     if (issues.length > 0) {
       highlightIssuesInDoc(issues);
     }
+
+    // Store issues for state management
+    storeIssues(issues, "Selection");
 
     return createResultCard(issues, "Selection");
   } catch (error) {
@@ -380,33 +380,200 @@ function createResultCard(issues, source) {
     );
 
     // Action buttons in a compact layout
-    var findAction = CardService.newAction()
-      .setFunctionName("findInDocument")
-      .setParameters({
-        phrase: instance.phrase,
-        start: instance.position ? String(instance.position.start) : "0",
-      });
-
     var replaceAction = CardService.newAction()
       .setFunctionName("replacePhrase")
       .setParameters({
         phrase: instance.phrase,
         replacement: instance.replacement,
+        index: String(index),
         start: instance.position ? String(instance.position.start) : "0",
+      });
+
+    var ignoreAction = CardService.newAction()
+      .setFunctionName("ignoreIssue")
+      .setParameters({
+        phrase: instance.phrase,
+        index: String(index),
       });
 
     issueSection.addWidget(
       CardService.newButtonSet()
         .addButton(
           CardService.newTextButton()
-            .setText("Find")
-            .setOnClickAction(findAction),
+            .setText("Replace")
+            .setOnClickAction(replaceAction)
+            .setTextButtonStyle(CardService.TextButtonStyle.FILLED),
         )
+        .addButton(
+          CardService.newTextButton()
+            .setText("Ignore")
+            .setOnClickAction(ignoreAction),
+        ),
+    );
+
+    card.addSection(issueSection);
+  });
+
+  // Footer actions
+  var footerSection = CardService.newCardSection();
+  footerSection.addWidget(
+    CardService.newButtonSet()
+      .addButton(
+        CardService.newTextButton()
+          .setText("Clear Highlights")
+          .setOnClickAction(
+            CardService.newAction().setFunctionName("clearHighlights"),
+          ),
+      )
+      .addButton(
+        CardService.newTextButton()
+          .setText("Check Again")
+          .setOnClickAction(
+            CardService.newAction().setFunctionName("onHomepage"),
+          ),
+      ),
+  );
+
+  card.addSection(footerSection);
+  return card.build();
+}
+
+/**
+ * Creates a result card from pre-flattened instances (used for updating after replace/ignore).
+ * @param {Array} allInstances Array of flattened bias instances
+ * @param {string} source Source of the analyzed text
+ * @return {CardService.Card} The result card
+ */
+function createResultCardFromInstances(allInstances, source) {
+  var card = CardService.newCardBuilder();
+  var headerSection = CardService.newCardSection();
+
+  // Header
+  headerSection.addWidget(
+    CardService.newTextParagraph().setText(
+      '<font color="#1f2937"><b>Analysis Complete</b></font><br><font color="#6b7280">' +
+        source +
+        "</font>",
+    ),
+  );
+
+  if (allInstances.length === 0) {
+    headerSection.addWidget(
+      CardService.newTextParagraph().setText(
+        '<font color="#059669"><b>All issues resolved!</b></font><br><font color="#6b7280">Great job making your text more inclusive.</font>',
+      ),
+    );
+
+    headerSection.addWidget(
+      CardService.newTextButton()
+        .setText("Check Again")
+        .setOnClickAction(
+          CardService.newAction().setFunctionName("onHomepage"),
+        ),
+    );
+
+    card.addSection(headerSection);
+    return card.build();
+  }
+
+  headerSection.addWidget(
+    CardService.newTextParagraph().setText(
+      '<font color="#dc2626"><b>' +
+        allInstances.length +
+        " issue" +
+        (allInstances.length === 1 ? "" : "s") +
+        " remaining</b></font>",
+    ),
+  );
+
+  card.addSection(headerSection);
+
+  // Severity color mapping
+  var severityColors = {
+    low: "#059669",
+    medium: "#d97706",
+    high: "#dc2626",
+  };
+
+  var severityLabels = {
+    low: "Low",
+    medium: "Medium",
+    high: "High",
+  };
+
+  // Create a section for each instance
+  allInstances.forEach(function (instance, index) {
+    var issueSection = CardService.newCardSection();
+
+    var severityColor = severityColors[instance.severity];
+    var severityLabel = severityLabels[instance.severity];
+
+    issueSection.addWidget(
+      CardService.newTextParagraph().setText(
+        '<font color="#6b7280">Issue ' +
+          (index + 1) +
+          '</font> • <font color="' +
+          severityColor +
+          '"><b>' +
+          severityLabel +
+          "</b></font>",
+      ),
+    );
+
+    issueSection.addWidget(
+      CardService.newTextParagraph().setText(
+        '<font color="#6b7280">Original:</font><br><font color="#1f2937">"' +
+          instance.phrase +
+          '"</font>',
+      ),
+    );
+
+    issueSection.addWidget(
+      CardService.newTextParagraph().setText(
+        '<font color="#6b7280">Suggested:</font><br><font color="#059669"><b>"' +
+          instance.replacement +
+          '"</b></font>',
+      ),
+    );
+
+    issueSection.addWidget(
+      CardService.newTextParagraph().setText(
+        '<font color="#6b7280"><i>' +
+          instance.category +
+          '</i></font><br><font color="#374151">' +
+          instance.explanation +
+          "</font>",
+      ),
+    );
+
+    var replaceAction = CardService.newAction()
+      .setFunctionName("replacePhrase")
+      .setParameters({
+        phrase: instance.phrase,
+        replacement: instance.replacement,
+        index: String(index),
+        start: instance.position ? String(instance.position.start) : "0",
+      });
+
+    var ignoreAction = CardService.newAction()
+      .setFunctionName("ignoreIssue")
+      .setParameters({
+        phrase: instance.phrase,
+        index: String(index),
+      });
+
+    issueSection.addWidget(
+      CardService.newButtonSet()
         .addButton(
           CardService.newTextButton()
             .setText("Replace")
             .setOnClickAction(replaceAction)
             .setTextButtonStyle(CardService.TextButtonStyle.FILLED),
+        )
+        .addButton(
+          CardService.newTextButton()
+            .setText("Ignore")
+            .setOnClickAction(ignoreAction),
         ),
     );
 
@@ -572,12 +739,98 @@ function findInDocument(e) {
 }
 
 /**
- * Replaces a specific biased phrase with the suggested replacement.
- * @param {Object} e Event object containing phrase, replacement, and start position parameters
+ * Stores issues in script properties for state management.
+ * @param {Array} issues Array of bias issues
+ * @param {string} source Source of the analyzed text
+ */
+function storeIssues(issues, source) {
+  // Flatten issues to instances
+  var allInstances = [];
+  issues.forEach(function (issue) {
+    if (issue.positions && issue.positions.length > 0) {
+      issue.positions.forEach(function (pos) {
+        allInstances.push({
+          phrase: issue.phrase,
+          category: issue.category,
+          explanation: issue.explanation,
+          replacement: issue.replacement,
+          severity: issue.severity,
+          position: pos,
+        });
+      });
+    } else {
+      allInstances.push(issue);
+    }
+  });
+
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty("currentIssues", JSON.stringify(allInstances));
+  props.setProperty("currentSource", source);
+}
+
+/**
+ * Gets stored issues from script properties.
+ * @return {Object} Object with issues array and source string
+ */
+function getStoredIssues() {
+  var props = PropertiesService.getScriptProperties();
+  var issuesJson = props.getProperty("currentIssues");
+  var source = props.getProperty("currentSource") || "Document";
+
+  if (!issuesJson) {
+    return { issues: [], source: source };
+  }
+
+  try {
+    return { issues: JSON.parse(issuesJson), source: source };
+  } catch (e) {
+    return { issues: [], source: source };
+  }
+}
+
+/**
+ * Removes an issue from stored issues by index.
+ * @param {number} index Index of the issue to remove
+ * @return {Object} Object with updated issues array and source string
+ */
+function removeIssueByIndex(index) {
+  var stored = getStoredIssues();
+  stored.issues.splice(index, 1);
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty("currentIssues", JSON.stringify(stored.issues));
+  return stored;
+}
+
+/**
+ * Ignores an issue and removes its card.
+ * @param {Object} e Event object containing the phrase and index parameters
+ */
+function ignoreIssue(e) {
+  var phrase = e.parameters.phrase;
+  var index = parseInt(e.parameters.index || "0");
+
+  // Remove this issue from stored issues
+  var stored = removeIssueByIndex(index);
+
+  // Build updated card
+  var card = createResultCardFromInstances(stored.issues, stored.source);
+
+  return CardService.newActionResponseBuilder()
+    .setNotification(
+      CardService.newNotification().setText('Ignored "' + phrase + '"'),
+    )
+    .setNavigation(CardService.newNavigation().updateCard(card))
+    .build();
+}
+
+/**
+ * Replaces a specific biased phrase with the suggested replacement and removes its card.
+ * @param {Object} e Event object containing phrase, replacement, index, and start position parameters
  */
 function replacePhrase(e) {
   var phrase = e.parameters.phrase;
   var replacement = e.parameters.replacement;
+  var index = parseInt(e.parameters.index || "0");
   var startPos = parseInt(e.parameters.start || "0");
   var doc = DocumentApp.getActiveDocument();
   var body = doc.getBody();
@@ -615,13 +868,20 @@ function replacePhrase(e) {
     element.insertText(start, replacement);
   }
 
-  // Return notification
+  // Remove this issue from stored issues
+  var stored = removeIssueByIndex(index);
+
+  // Build updated card
+  var card = createResultCardFromInstances(stored.issues, stored.source);
+
+  // Return notification and updated card
   return CardService.newActionResponseBuilder()
     .setNotification(
       CardService.newNotification().setText(
         'Replaced "' + phrase + '" with "' + replacement + '"',
       ),
     )
+    .setNavigation(CardService.newNavigation().updateCard(card))
     .setStateChanged(true)
     .build();
 }
