@@ -16,7 +16,7 @@ function App() {
         <div className="nav-links">
           <a href="#about">About</a>
           <a href="#demo">Try It</a>
-          <a href="#categories">Categories</a>
+          <a href="#categories">Biases</a>
           <a href="#download" className="btn btn-nav">
             Download
           </a>

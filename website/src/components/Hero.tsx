@@ -23,12 +23,17 @@ export default function Hero() {
           communications are inclusive and respectful.
         </p>
         <div className="hero-cta">
-          <button className="btn btn-primary" onClick={scrollToDemo}>
+          <a
+            href="https://chromewebstore.google.com/detail/bias-detector/your-extension-id"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary btn-chrome"
+          >
+            Get Chrome Extension
+          </a>
+          <button className="btn btn-secondary" onClick={scrollToDemo}>
             Try Demo
           </button>
-          <a href="#platforms" className="btn btn-secondary">
-            View Integrations
-          </a>
         </div>
       </div>
       <div className="hero-visual">
