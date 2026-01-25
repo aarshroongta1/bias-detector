@@ -4,8 +4,15 @@ import Platforms from "./components/Platforms";
 import Demo from "./components/Demo";
 import BiasCategories from "./components/BiasCategories";
 import Footer from "./components/Footer";
+import Privacy from "./components/Privacy";
 
 function App() {
+  const isPrivacyPage = window.location.pathname === "/privacy";
+
+  if (isPrivacyPage) {
+    return <Privacy />;
+  }
+
   return (
     <div className="app">
       <nav className="navbar">
