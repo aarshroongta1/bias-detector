@@ -1,6 +1,6 @@
 # Bias Detector
 
-An AI-powered tool that detects implicit biases in your writing and suggests more inclusive alternatives. Available as a Chrome extension, Google Docs add-on, and Outlook add-in.
+Implicit biases subconsciously creep into our everyday communications, and we barely notice them. Use this bias detector to detect such biases in your writing, understand the potential problems, and find more inclusive alternatives.
 
 
 **Website**: https://bias-detector-iota.vercel.app/
