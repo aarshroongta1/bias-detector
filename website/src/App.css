@@ -1542,7 +1542,7 @@ section {
 .footer {
   background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
   color: white;
-  padding: 5rem 4rem 3rem;
+  padding: 2rem 4rem;
   position: relative;
   overflow: hidden;
 }
@@ -1570,98 +1570,39 @@ section {
   position: relative;
 }
 
-.footer-main {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
-  gap: 4rem;
-  margin-bottom: 4rem;
-}
-
-.footer-brand h3 {
-  font-size: 1.35rem;
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  letter-spacing: -0.02em;
-}
-
-.footer-brand p {
-  color: #64748b;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  max-width: 280px;
-}
-
-.footer-downloads h4,
-.footer-links h4 {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #64748b;
-  margin-bottom: 1.25rem;
-  font-weight: 600;
-}
-
-.download-buttons {
+.footer-bottom {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
 }
 
-.download-btn {
-  display: flex;
+.github-link {
+  display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.625rem 0.875rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  gap: 0.5rem;
   color: #e2e8f0;
   text-decoration: none;
-  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
-.download-btn:hover {
+.github-link:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: translateX(4px);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
-.download-icon {
+.github-link svg {
   width: 20px;
   height: 20px;
-  flex-shrink: 0;
-  opacity: 0.9;
-}
-
-.footer-links ul {
-  list-style: none;
-}
-
-.footer-links li {
-  margin-bottom: 0.625rem;
-}
-
-.footer-links a {
-  color: #64748b;
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-  display: inline-block;
-}
-
-.footer-links a:hover {
-  color: #e2e8f0;
-  transform: translateX(4px);
-}
-
-.footer-bottom {
-  text-align: center;
-  font-size: 0.8rem;
-  color: #475569;
-  padding-top: 2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* Responsive */
@@ -1671,12 +1612,7 @@ section {
   }
 
   .footer {
-    padding: 4rem 2rem 2.5rem;
-  }
-
-  .footer-main {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
+    padding: 1.5rem 2rem;
   }
 
   section {
@@ -2085,7 +2021,7 @@ section {
 
 /* Cursor */
 .the-cursor {
-  position: fixed;
+  position: absolute;
   width: 28px;
   height: 28px;
   color: var(--text-primary);

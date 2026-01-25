@@ -1,6 +1,3 @@
 node_modules/
 dist/
 .env
-# Large video files
-*.mp4
-website/public/demo.mp4

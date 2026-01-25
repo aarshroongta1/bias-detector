@@ -1,64 +1,25 @@
 export default function Footer() {
   return (
-    <footer className="footer" id="download">
+    <footer className="footer">
       <div className="footer-content">
-        <div className="footer-main">
-          <div className="footer-brand">
-            <h3>Bias Detector</h3>
-            <p>Write more inclusively with AI-powered bias detection.</p>
-          </div>
-
-          <div className="footer-downloads">
-            <h4>Download</h4>
-            <div className="download-buttons">
-              <a href="#" className="download-btn">
-                <svg viewBox="0 0 24 24" className="download-icon chrome">
-                  <circle cx="12" cy="12" r="10" fill="#fff"/>
-                  <path d="M12 2a10 10 0 0 1 8.66 5H12a5 5 0 0 0-4.33 2.5L5.25 5.17A10 10 0 0 1 12 2z" fill="#EA4335"/>
-                  <path d="M20.66 7a10 10 0 0 1-3.41 11.83L14.83 14.5A5 5 0 0 0 17 12h5.66z" fill="#FBBC05"/>
-                  <path d="M17.25 18.83A10 10 0 0 1 5.25 5.17l2.42 4.33A5 5 0 0 0 12 17l5.25 1.83z" fill="#34A853"/>
-                  <path d="M7.67 9.5A5 5 0 0 0 12 17v5a10 10 0 0 1-6.75-12.83l2.42 4.33z" fill="#4285F4"/>
-                  <circle cx="12" cy="12" r="4" fill="#fff"/>
-                  <circle cx="12" cy="12" r="3" fill="#4285F4"/>
-                </svg>
-                <span>Chrome Extension</span>
-              </a>
-              <a href="#" className="download-btn">
-                <svg viewBox="0 0 24 24" className="download-icon outlook">
-                  <rect x="1" y="4" width="22" height="16" rx="2" fill="#0078D4"/>
-                  <path d="M13 6h8v12h-8z" fill="#0078D4"/>
-                  <path d="M14 8h6v8h-6z" fill="#fff" opacity="0.3"/>
-                  <ellipse cx="6" cy="12" rx="3.5" ry="4" fill="#0078D4"/>
-                  <ellipse cx="6" cy="12" rx="2" ry="2.5" fill="#fff"/>
-                </svg>
-                <span>Outlook Add-in</span>
-              </a>
-              <a href="#" className="download-btn">
-                <svg viewBox="0 0 24 24" className="download-icon docs">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" fill="#4285F4"/>
-                  <path d="M14 2v6h6" fill="#A1C2FA"/>
-                  <path d="M8 13h8M8 16h5" stroke="#fff" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                </svg>
-                <span>Google Docs</span>
-              </a>
-            </div>
-          </div>
-
-          <div className="footer-links">
-            <h4>Resources</h4>
-            <ul>
-              <li><a href="#about">About</a></li>
-              <li><a href="#demo">Try Demo</a></li>
-              <li><a href="#categories">Categories</a></li>
-              <li><a href="#examples">Examples</a></li>
-            </ul>
-          </div>
-        </div>
-
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Bias Detector. Built to promote inclusive communication.</p>
+          <a
+            href="https://github.com/aarshroongta1/bias-detector"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="github-link"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+            </svg>
+            <span>View on GitHub</span>
+          </a>
+          <p>
+            &copy; {new Date().getFullYear()} Bias Detector. Built to promote
+            inclusive communication.
+          </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

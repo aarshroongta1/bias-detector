@@ -11,10 +11,16 @@ export default function AnimatedTitle() {
     opacity: 0
   })
 
+  const containerRef = useRef<HTMLDivElement>(null)
   const wordRef = useRef<HTMLSpanElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   const moveCursorTo = (target: 'start' | 'word' | 'button') => {
+    const container = containerRef.current
+    if (!container) return
+
+    const containerRect = container.getBoundingClientRect()
+
     if (target === 'start') {
       setCursorStyle({
         left: -100,
@@ -24,15 +30,15 @@ export default function AnimatedTitle() {
     } else if (target === 'word' && wordRef.current) {
       const rect = wordRef.current.getBoundingClientRect()
       setCursorStyle({
-        left: rect.right - 20,
-        top: rect.bottom - 15,
+        left: rect.right - containerRect.left - 20,
+        top: rect.bottom - containerRect.top - 15,
         opacity: 1
       })
     } else if (target === 'button' && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect()
       setCursorStyle({
-        left: rect.left + rect.width / 2 - 5,
-        top: rect.top + rect.height / 2,
+        left: rect.left - containerRect.left + rect.width / 2 - 5,
+        top: rect.top - containerRect.top + rect.height / 2,
         opacity: 1
       })
     }
@@ -92,7 +98,7 @@ export default function AnimatedTitle() {
 
   return (
     <section className="intro-section">
-      <div className="intro-content">
+      <div className="intro-content" ref={containerRef}>
         {/* The Word */}
         <div className="word-container">
           <span
