@@ -42,7 +42,7 @@ const categories = [
     color: "#10b981",
     example: {
       bad: "Students from public schools may struggle in advanced classes.",
-      good: "Students unfamiliar to the environment may struggle in advanced classes.",
+      good: "Students unfamiliar with the environment may struggle in advanced classes.",
       highlight: "from public schools",
     },
   },
@@ -59,197 +59,127 @@ const categories = [
 
 export default function BiasCategories() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [direction, setDirection] = useState<"next" | "prev">("next");
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const progressRef = useRef<NodeJS.Timeout | null>(null);
-
-  const DURATION = 5000;
-
-  const startProgress = () => {
-    setProgress(0);
-    if (progressRef.current) clearInterval(progressRef.current);
-    const step = 100 / (DURATION / 50);
-    progressRef.current = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) return 100;
-        return prev + step;
-      });
-    }, 50);
-  };
-
-  const goToIndex = (index: number) => {
-    if (index === activeIndex) return;
-    setDirection(index > activeIndex ? "next" : "prev");
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setActiveIndex(index);
-      setIsTransitioning(false);
-      startProgress();
-    }, 400);
-  };
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    startProgress();
-    intervalRef.current = setInterval(() => {
-      setDirection("next");
-      setIsTransitioning(true);
-      setTimeout(() => {
-        setActiveIndex((prev) => (prev + 1) % categories.length);
-        setIsTransitioning(false);
-        startProgress();
-      }, 400);
-    }, DURATION);
+    const handleScroll = () => {
+      if (!containerRef.current) return;
 
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      if (progressRef.current) clearInterval(progressRef.current);
+      const container = containerRef.current;
+      const rect = container.getBoundingClientRect();
+      const containerHeight = container.offsetHeight;
+      const viewportHeight = window.innerHeight;
+
+      const scrollableHeight = containerHeight - viewportHeight;
+      const scrolled = -rect.top;
+      const progress = Math.max(0, Math.min(1, scrolled / scrollableHeight));
+
+      setScrollProgress(progress);
+
+      const categoryIndex = Math.min(
+        Math.floor(progress * categories.length),
+        categories.length - 1
+      );
+      setActiveIndex(categoryIndex);
     };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const active = categories[activeIndex];
 
-  const renderHighlightedText = (
-    text: string,
-    highlight: string,
-    isBad: boolean,
-  ) => {
-    const parts = text.split(highlight);
-    if (parts.length === 1) return text;
-    return (
-      <>
-        {parts[0]}
-        <span className={`highlight-word ${isBad ? "bad" : "good"}`}>
-          {isBad ? highlight : ""}
-        </span>
-        {parts[1]}
-      </>
-    );
-  };
-
   return (
-    <section className="categories" id="categories">
-      <div className="section-header">
-        <h2>Implicit Biases creep their way into everyday writing</h2>
-      </div>
-
-      <div className="showcase-container">
-        {/* Vertical Category Navigation */}
-        <div className="category-sidebar">
-          {categories.map((cat, index) => (
-            <button
-              key={index}
-              className={`category-tab-v2 ${index === activeIndex ? "active" : ""}`}
-              onClick={() => goToIndex(index)}
-              style={{ "--tab-color": cat.color } as React.CSSProperties}
+    <section className="categories-parallax" id="categories" ref={containerRef}>
+      <div className="categories-sticky">
+        <div className="categories-inner">
+          {/* Left: Category info */}
+          <div className="category-left">
+            <span className="category-label">Bias Category</span>
+            <h2
+              className={`category-name ${active.name.length > 8 ? 'long-name' : ''}`}
+              style={{ color: active.color }}
             >
-              {cat.name}
-            </button>
-          ))}
-        </div>
+              {active.name}
+            </h2>
 
-        {/* Showcase Card */}
-        <div className="showcase-wrapper">
-          <div
-            className={`showcase-card-v2 ${isTransitioning ? `transitioning-${direction}` : ""}`}
-          >
-            {/* Decorative elements */}
-            <div
-              className="card-glow"
-              style={{
-                background: `radial-gradient(circle at 30% 30%, ${active.color}15, transparent 70%)`,
-              }}
-            />
+            {/* Progress dots */}
+            <div className="category-dots">
+              {categories.map((cat, index) => (
+                <div
+                  key={index}
+                  className={`category-dot ${index === activeIndex ? "active" : ""}`}
+                  style={{
+                    backgroundColor: index === activeIndex ? cat.color : undefined,
+                  }}
+                />
+              ))}
+            </div>
 
-            <div className="showcase-content">
-              <div className="showcase-before-v2">
-                <div className="showcase-label-v2">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
+            <p className="category-hint">
+              Implicit biases that creep into everyday writing.
+            </p>
+          </div>
+
+          {/* Right: Example card */}
+          <div className="category-right">
+            <div className="example-card" style={{ borderTopColor: active.color }}>
+              {/* Before */}
+              <div className="example-section">
+                <div className="example-header bad">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <line x1="15" y1="9" x2="9" y2="15" />
                     <line x1="9" y1="9" x2="15" y2="15" />
                   </svg>
-                  Biased
+                  <span>Biased</span>
                 </div>
-                <p className="showcase-text-v2">
-                  {renderHighlightedText(
-                    active.example.bad,
-                    active.example.highlight,
-                    true,
-                  )}
+                <p className="example-text">
+                  {active.example.bad.split(active.example.highlight).map((part, i, arr) => (
+                    <span key={i}>
+                      {part}
+                      {i < arr.length - 1 && (
+                        <mark className="highlight-bad">{active.example.highlight}</mark>
+                      )}
+                    </span>
+                  ))}
                 </p>
               </div>
 
-              <div className="showcase-divider">
-                <div className="divider-line" />
-                <div
-                  className="divider-icon"
-                  style={{ borderColor: active.color, color: active.color }}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M5 12h14" />
-                    <path d="M12 5l7 7-7 7" />
-                  </svg>
-                </div>
-                <div className="divider-line" />
+              {/* Arrow */}
+              <div className="example-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
               </div>
 
-              <div className="showcase-after-v2">
-                <div className="showcase-label-v2 success">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
+              {/* After */}
+              <div className="example-section">
+                <div className="example-header good">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M9 12l2 2 4-4" />
                   </svg>
-                  Inclusive
+                  <span>Inclusive</span>
                 </div>
-                <p className="showcase-text-v2 improved">
-                  {active.example.good}
-                </p>
+                <p className="example-text good">{active.example.good}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Mobile Progress Dots */}
-        <div className="showcase-dots-v2">
-          {categories.map((cat, index) => (
-            <button
-              key={index}
-              className={`dot-v2 ${index === activeIndex ? "active" : ""}`}
-              onClick={() => goToIndex(index)}
-              style={{ "--dot-color": cat.color } as React.CSSProperties}
-            >
-              {index === activeIndex && (
-                <svg className="dot-progress" viewBox="0 0 36 36">
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeDasharray={`${progress}, 100`}
-                  />
-                </svg>
-              )}
-            </button>
-          ))}
+        {/* Scroll progress bar */}
+        <div className="scroll-progress-bar">
+          <div
+            className="scroll-progress-fill"
+            style={{
+              width: `${scrollProgress * 100}%`,
+              backgroundColor: active.color,
+            }}
+          />
         </div>
       </div>
     </section>
