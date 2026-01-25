@@ -1,59 +1,57 @@
 # Bias Detector
 
-A multi-platform AI-powered tool that detects implicit biases in written text and suggests more inclusive alternatives.
+An AI-powered tool that detects implicit biases in your writing and suggests more inclusive alternatives. Available as a Chrome extension, Google Docs add-on, and Outlook add-in.
 
 ## Features
 
-- Real-time bias detection as you write
-- Suggestions for more inclusive language
-- Support for multiple platforms (Chrome, Outlook, Google Docs)
-- Detects various bias categories:
-  - **Gender** - Gender-specific language and assumptions
-  - **Age** - Age-related stereotypes and assumptions
-  - **Ethnic** - Ethnicity-based assumptions
-  - **Ability** - Ableist language
-  - **Socioeconomic** - Class-based assumptions
-  - **Racial** - Racially insensitive terminology
+- **Real-time Detection** - Identifies biased language as you write
+- **Inline Highlighting** - Visual indicators show exactly where biases appear
+- **Smart Suggestions** - AI-powered replacements for more inclusive language
+- **One-click Fixes** - Apply suggestions instantly with a single click
+- **Multi-platform** - Works across Chrome, Google Docs, and Outlook
+
+### Bias Categories
+
+| Category | Description |
+|----------|-------------|
+| Gender | Gender-specific language and assumptions |
+| Age | Age-related stereotypes and assumptions |
+| Racial | Racially insensitive terminology |
+| Ethnic | Ethnicity-based assumptions |
+| Ability | Ableist language |
+| Socioeconomic | Class-based assumptions |
 
 ## Project Structure
 
 ```
 bias-detector/
 ├── chrome-extension/    # Chrome browser extension (Plasmo)
-├── website/             # Landing page and demo (Vite + React)
-├── outlook-addins/      # Microsoft Outlook add-in (Webpack)
-└── server/              # Backend API server (Express + OpenAI)
+├── google-addon/        # Google Docs add-on (Apps Script)
+├── outlook-addon/       # Outlook add-in (Office.js)
+├── server/              # Backend API (Express + OpenAI)
+└── website/             # Landing page & demo (Vite + React)
 ```
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- npm or pnpm
+- Node.js v18+
+- pnpm or npm
 - OpenAI API key
 
-### Environment Variables
-
-Create a `.env` file in the `server` directory:
-
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-### Installation
-
-#### Backend Server
+### 1. Start the Backend
 
 ```bash
 cd server
 npm install
+echo "OPENAI_API_KEY=your_key_here" > .env
 npm run dev
 ```
 
-The server runs on `http://localhost:3000` by default.
+Server runs at `http://localhost:3000`
 
-#### Chrome Extension
+### 2. Run the Chrome Extension
 
 ```bash
 cd chrome-extension
@@ -61,13 +59,13 @@ pnpm install
 pnpm dev
 ```
 
-Load the extension in Chrome:
-1. Go to `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked"
-4. Select the `chrome-extension/build/chrome-mv3-dev` directory
+Then load in Chrome:
+1. Navigate to `chrome://extensions/`
+2. Enable **Developer mode**
+3. Click **Load unpacked**
+4. Select `chrome-extension/build/chrome-mv3-dev`
 
-#### Website
+### 3. Run the Website
 
 ```bash
 cd website
@@ -75,22 +73,39 @@ npm install
 npm run dev
 ```
 
-The website runs on `http://localhost:5173` by default.
+Website runs at `http://localhost:5173`
 
-#### Outlook Add-in
+### 4. Google Docs Add-on
+
+The Google add-on uses Apps Script. See `google-addon/` for deployment instructions.
+
+### 5. Outlook Add-in
 
 ```bash
-cd outlook-addins
+cd outlook-addon
 npm install
 npm run dev
 ```
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript, CSS
-- **Chrome Extension**: Plasmo Framework
-- **Backend**: Express.js, OpenAI API
-- **Build Tools**: Vite, Webpack
+| Component | Technologies |
+|-----------|-------------|
+| Chrome Extension | Plasmo, React, TypeScript |
+| Google Add-on | Google Apps Script |
+| Outlook Add-in | Office.js, React |
+| Backend | Express.js, OpenAI API |
+| Website | Vite, React, TypeScript |
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
