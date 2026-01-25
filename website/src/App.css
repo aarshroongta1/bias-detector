@@ -1686,17 +1686,17 @@ section {
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #4285f4 0%, #2563eb 100%);
-  border: none;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 8px;
   font-weight: 500;
   transition: all 0.2s ease;
 }
 
 .chrome-link:hover {
-  background: linear-gradient(135deg, #3b78e7 0%, #1d4ed8 100%);
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
 .chrome-link svg {

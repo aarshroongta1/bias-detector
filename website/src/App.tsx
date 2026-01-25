@@ -17,7 +17,12 @@ function App() {
           <a href="#about">About</a>
           <a href="#demo">Try It</a>
           <a href="#categories">Biases</a>
-          <a href="#download" className="btn btn-nav">
+          <a
+            href={import.meta.env.VITE_CHROME_EXTENSION_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-nav"
+          >
             Download
           </a>
         </div>

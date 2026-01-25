@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="footer-bottom">
           <div className="footer-links">
             <a
-              href="https://chromewebstore.google.com/detail/bias-detector/your-extension-id"
+              href={import.meta.env.VITE_CHROME_EXTENSION_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="chrome-link"

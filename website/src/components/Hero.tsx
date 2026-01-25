@@ -24,7 +24,7 @@ export default function Hero() {
         </p>
         <div className="hero-cta">
           <a
-            href="https://chromewebstore.google.com/detail/bias-detector/your-extension-id"
+            href={import.meta.env.VITE_CHROME_EXTENSION_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary btn-chrome"
